@@ -5,6 +5,7 @@ import android.app.IntentService;
 import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.util.Log;
 
 import static org.mariotaku.twidere.TwidereConstants.LOGTAG;
@@ -17,17 +18,19 @@ import org.mariotaku.twidere.api.twitter.model.ResponseList;
 import org.mariotaku.twidere.api.twitter.model.Status;
 import org.mariotaku.twidere.util.AsyncTaskManager;
 import org.mariotaku.twidere.util.AsyncTwitterWrapper;
+import org.mariotaku.twidere.util.TwitterAPIFactory;
 
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 
 public class HomeTimelineService extends IntentService {
-	public static Twitter twitter;
+	public static final String PREFS = "HomeTimelinePrefs";
+	public static final String PREFS_ACCOUNT_ID = "accountId";
 
 	protected static int count = 0;
-	protected static long sinceId = 0;
 
 	public HomeTimelineService() {
 		super("HomeTimelineService");
@@ -35,35 +38,43 @@ public class HomeTimelineService extends IntentService {
 
 	@Override
 	protected void onHandleIntent(Intent intent) {
-		Log.i(LOGTAG, "Service.onHandleIntent() #" + count + " " + sinceId  + ", " + (twitter == null));
+		SharedPreferences prefs = getSharedPreferences(PREFS, 0);
+		long accountId = prefs.getLong(PREFS_ACCOUNT_ID, 0); // 23918427L
+		String debug = "";
+		try {
+			Twitter twitter = TwitterAPIFactory.getTwitterInstance(getApplicationContext(), accountId, true);
 
-		if (twitter != null) {
-			try {
-				count++;
-				Paging paging = new Paging().count(1);
-				if (sinceId > 0) {
-					paging.sinceId(sinceId);
-				}
-				ResponseList<Status> statuses = twitter.getHomeTimeline(paging);
-				Log.i(LOGTAG, "statuses: " + statuses.size());
-				if ( ! statuses.isEmpty()) {
-					int i = 0;
-					for (Status status : statuses) {
-						sinceId = status.getId();
-						publish(status, i);
-						i++;
+			debug += new Date() + " #" + count + ", accountId=" + accountId;
+			Log.i(LOGTAG, "Service.onHandleIntent() #" + count + " " + accountId + ", " + (twitter == null));
+
+			if (twitter != null) {
+				try {
+					count++;
+					Paging paging = new Paging().count(1);
+					ResponseList<Status> statuses = twitter.getHomeTimeline(paging);
+					debug += " statuses: " + statuses.size();
+					Log.i(LOGTAG, "statuses: " + statuses.size());
+					if (!statuses.isEmpty()) {
+						int i = 0;
+						for (Status status : statuses) {
+							publish(status, i);
+							i++;
+						}
 					}
+				} catch (TwitterException e) {
+					e.printStackTrace();
+					sendToMinimalisticText(getApplicationContext(), "twidere.error", new Date() + " " + e.toString());
 				}
-			} catch (TwitterException e) {
-				e.printStackTrace();
 			}
+		} finally {
+			sendToMinimalisticText(getApplicationContext(), "twidere.debug", debug);
 		}
 
 /*
 		if (count > 2) {
 			cancelAlarm();
 		}
-*/
+/**/
 	}
 
 	public void cancelAlarm() {

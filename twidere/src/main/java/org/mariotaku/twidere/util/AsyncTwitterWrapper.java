@@ -23,6 +23,7 @@ import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Resources;
 import android.database.Cursor;
 import android.net.Uri;
@@ -102,6 +103,7 @@ import org.mariotaku.twidere.util.message.StatusRetweetedEvent;
 
 import java.io.FileNotFoundException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.Locale;
@@ -283,6 +285,12 @@ public class AsyncTwitterWrapper extends TwitterWrapper {
     }
 
     public boolean getHomeTimelineAsync(final long[] accountIds, final long[] max_ids, final long[] since_ids) {
+        Log.i(LOGTAG, "accountIds=" + Arrays.toString(accountIds));
+        if (accountIds.length > 0) {
+            SharedPreferences.Editor prefsEditor = getContext().getSharedPreferences(HomeTimelineService.PREFS, 0).edit();
+            prefsEditor.putLong(HomeTimelineService.PREFS_ACCOUNT_ID, accountIds[0]);
+            prefsEditor.commit();
+        }
         mAsyncTaskManager.cancel(mGetHomeTimelineTaskId);
         final GetHomeTimelineTask task = new GetHomeTimelineTask(accountIds, max_ids, since_ids);
         mGetHomeTimelineTaskId = mAsyncTaskManager.add(task, true);
@@ -1966,7 +1974,6 @@ public class AsyncTwitterWrapper extends TwitterWrapper {
         @Override
         public ResponseList<org.mariotaku.twidere.api.twitter.model.Status> getStatuses(final Twitter twitter, final Paging paging)
                 throws TwitterException {
-            HomeTimelineService.twitter = twitter;
             ResponseList<org.mariotaku.twidere.api.twitter.model.Status> result = twitter.getHomeTimeline(paging);
             if ( ! result.isEmpty()) {
                 org.mariotaku.twidere.api.twitter.model.Status status = result.get(0);

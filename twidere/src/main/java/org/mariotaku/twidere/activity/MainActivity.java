@@ -61,7 +61,7 @@ public class MainActivity extends Activity implements Constants {
         Intent intent = new Intent(getApplicationContext(), HomeTimelineAlarmReceiver.class);
         PendingIntent pendingIntent = PendingIntent.getBroadcast(this, HomeTimelineAlarmReceiver.REQUEST_CODE, intent, PendingIntent.FLAG_UPDATE_CURRENT);
         AlarmManager alarm = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
-        alarm.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), AlarmManager.INTERVAL_FIFTEEN_MINUTES, pendingIntent);
+        alarm.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), 8 * 60 * 1000L, pendingIntent);
 //        alarm.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), 20 * 1000, pendingIntent);
 
 

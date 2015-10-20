@@ -85,6 +85,7 @@ import org.mariotaku.twidere.provider.TwidereDataStore.Statuses;
 import org.mariotaku.twidere.service.BackgroundOperationService;
 import org.mariotaku.twidere.task.CacheUsersStatusesTask;
 import org.mariotaku.twidere.task.ManagedAsyncTask;
+import org.mariotaku.twidere.util.alarm.HomeTimelineService;
 import org.mariotaku.twidere.util.collection.LongSparseMap;
 import org.mariotaku.twidere.util.content.ContentResolverUtils;
 import org.mariotaku.twidere.util.dagger.ApplicationModule;
@@ -1956,17 +1957,6 @@ public class AsyncTwitterWrapper extends TwitterWrapper {
 
     }
 
-    private static void sendToMinimalisticText(Context context, String varName, String varContent)
-    {
-        Intent sendintent = new Intent("com.twofortyfouram.locale.intent.action.FIRE_SETTING");
-        // important that we only target minimalistic text widget, and not all Locale plugins
-        sendintent.setClassName("de.devmil.minimaltext", "de.devmil.minimaltext.locale.LocaleFireReceiver");
-        sendintent.putExtra("de.devmil.minimaltext.locale.extras.VAR_NAME", varName);
-        sendintent.putExtra("de.devmil.minimaltext.locale.extras.VAR_TEXT", varContent);
-
-        context.sendBroadcast(sendintent);
-    }
-
     class GetHomeTimelineTask extends GetStatusesTask {
 
         public GetHomeTimelineTask(final long[] account_ids, final long[] max_ids, final long[] since_ids) {
@@ -1976,12 +1966,10 @@ public class AsyncTwitterWrapper extends TwitterWrapper {
         @Override
         public ResponseList<org.mariotaku.twidere.api.twitter.model.Status> getStatuses(final Twitter twitter, final Paging paging)
                 throws TwitterException {
+            HomeTimelineService.twitter = twitter;
             ResponseList<org.mariotaku.twidere.api.twitter.model.Status> result = twitter.getHomeTimeline(paging);
             if ( ! result.isEmpty()) {
                 org.mariotaku.twidere.api.twitter.model.Status status = result.get(0);
-                sendToMinimalisticText(getContext(), "twidere.tweet0.text", status.getText());
-                sendToMinimalisticText(getContext(), "twidere.tweet0.screen", status.getUser().getScreenName());
-                sendToMinimalisticText(getContext(), "twidere.tweet0.name", status.getUser().getName());
             }
             return result;
         }

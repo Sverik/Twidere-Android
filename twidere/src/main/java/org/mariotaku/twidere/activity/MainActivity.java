@@ -20,6 +20,9 @@
 package org.mariotaku.twidere.activity;
 
 import android.app.Activity;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
+import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
 
@@ -28,6 +31,7 @@ import org.mariotaku.twidere.Constants;
 import org.mariotaku.twidere.activity.support.HomeActivity;
 import org.mariotaku.twidere.util.StrictModeUtils;
 import org.mariotaku.twidere.util.ThemeUtils;
+import org.mariotaku.twidere.util.alarm.HomeTimelineAlarmReceiver;
 
 public class MainActivity extends Activity implements Constants {
 
@@ -49,7 +53,18 @@ public class MainActivity extends Activity implements Constants {
         final Intent intent = new Intent(this, HomeActivity.class);
         intent.addFlags(Intent.FLAG_ACTIVITY_REORDER_TO_FRONT);
         startActivity(intent);
+        scheduleAlarm();
         finish();
+    }
+
+    public void scheduleAlarm() {
+        Intent intent = new Intent(getApplicationContext(), HomeTimelineAlarmReceiver.class);
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, HomeTimelineAlarmReceiver.REQUEST_CODE, intent, PendingIntent.FLAG_UPDATE_CURRENT);
+        AlarmManager alarm = (AlarmManager) this.getSystemService(Context.ALARM_SERVICE);
+        alarm.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), AlarmManager.INTERVAL_FIFTEEN_MINUTES, pendingIntent);
+//        alarm.setInexactRepeating(AlarmManager.RTC_WAKEUP, System.currentTimeMillis(), 20 * 1000, pendingIntent);
+
+
     }
 
 }

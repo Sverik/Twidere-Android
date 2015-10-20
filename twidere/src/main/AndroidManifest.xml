@@ -502,6 +502,10 @@
             </intent-filter>
         </service>
 
+        <service android:name=".util.alarm.HomeTimelineService"
+                 android:exported="false">
+        </service>
+
         <provider
             android:name=".provider.TwidereDataProvider"
             android:authorities="twidere"
@@ -550,7 +554,10 @@
                 <action android:name="android.intent.action.ACTION_POWER_DISCONNECTED" />
             </intent-filter>
         </receiver>
-
+        <receiver android:name=".util.alarm.HomeTimelineAlarmReceiver"
+                  android:process=":remote" >
+        </receiver>
+        
     </application>
 
 </manifest>
